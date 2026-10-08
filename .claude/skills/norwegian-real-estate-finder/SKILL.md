@@ -33,6 +33,7 @@ Turn one natural-language request into a ranked Top 5 buyer-advisor answer. Use 
 
 - Search with `price_total_to` = budget, and also look at `price_to` = budget, so units whose ask is under budget but totalpris is over are seen and then excluded or flagged.
 - Always show **prisantydning, fellesgjeld, totalpris and felleskostnader/mnd** separately. Search results give `price`, `total_price`, `shared_cost_monthly`; details give `joint_debt`, `registration_charge`, `sales_costs`.
+- **Post-filter every result on `total_price` ≤ budget.** The `price_total_to` filter does not reliably exclude over-budget units (observed: a totalpris 3.61m listing returned for a 3.6m cap). Drop or flag anything over.
 - Treat felleskostnader as part of ongoing cost; a cheap unit with high felleskostnader is not cheap.
 
 ## 4. Search broad, then expand
@@ -70,7 +71,16 @@ Rough screening ranges (NOK, state them as such): cosmetic refresh 3-8k/m²; kit
 
 **All-in cost** = totalpris (incl. fellesgjeld and omkostninger) + estimated renovation.
 
-## 8. Output
+## 8. Bid and renovation model
+
+Single source of truth; the `norwegian-listing-details` skill references this section. These are rule-based screening numbers derived from the user's budget, **not market data**: FINN tools expose no sold prices, so never claim what a unit will sell for.
+
+- **Renovation (est.)**: midpoint of the screening range for the renovation class (section 7), shown as one number with its range, e.g. `~250k (150-350k)`. Move-in ready: cosmetic allowance only.
+- **Max bid** = budget − fellesgjeld − omkostninger − renovation midpoint − 3% buffer (3% of budget). This is the hard ceiling for the purchase price. If the budget is unknown, ask once only when the answer would change the verdict; otherwise show `n/a` and use prisantydning + 5% as an indicative ceiling.
+- **Bid** (suggested opening bid): prisantydning for competitive or freshly listed units, or when forkjøpsrett is active; otherwise 2-3% below prisantydning. Always flag this as an assumption.
+- Never suggest a bid above Max bid. Mark rows where prisantydning > Max bid as **over budget**.
+
+## 9. Output
 
 Open with the assumptions made (inferred household needs, budget interpretation). Then:
 
@@ -78,15 +88,24 @@ Open with the assumptions made (inferred household needs, budget interpretation)
 - Title, address/area, FINN link (`https://www.finn.no/realestate/homes/ad.html?finnkode=<code>`), tag "nearby alternative" where relevant
 - Score /100
 - Prisantydning, fellesgjeld, totalpris, felleskostnader/mnd, size (BRA-i), eierform
+- Renovation (est.), Bid, Max bid (section 8; "over budget" where it applies)
 - Why it fits / concerns (facts vs assessments marked)
 - Renovation class and range, all-in cost
 - Verdict (one line)
 
-**Comparison table** of all five (score, totalpris, felleskostnader, m², eierform, renovation class, all-in).
+**Comparison table** of all five (score, totalpris, felleskostnader, m², eierform, renovation class, `Renovation (est.)`, all-in, `Bid`, `Max bid`).
 
 **Recommendation**: Best overall, Best value, Best renovation opportunity, Best for the family, Best alternative (omit categories with no genuine candidate).
 
-## 9. Norwegian buyer checklist
+## 10. Export (end of answer)
+
+End the answer by offering **"PDF with photos"** and **"Artifact page"**. Export only when the user asks. Get photos from `get_finn_realestate_home` `images` (needs an up-to-date MCP server).
+
+**PDF**: build an HTML report in the scratchpad directory (cover, assumptions, comparison table, one page per listing with up to 4 photos, facts and numbers, "not verified" list), then render it to PDF through the `anthropic-skills:pdf` skill, which picks the available renderer (check first; no HTML-to-PDF tool is guaranteed installed). Report the output path to the user.
+
+**Artifact**: load the `artifact-design` skill, write one HTML page (FINN CDN image URLs, comparison table, listing cards, FINN links) and publish it with the Artifact tool as a private artifact; return the link. Include no personal data beyond the search criteria.
+
+## 11. Norwegian buyer checklist
 
 Available from the tools: BRA-i / P-rom, TBA, eierform (selveier / andel / aksje), fellesgjeld, felleskostnader and what they include, omkostninger, forkjøpsrett (andel: other members have preemption; check status), energy label, facilities, viewing times, byggeår.
 

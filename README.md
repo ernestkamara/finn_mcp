@@ -108,6 +108,10 @@ The repo ships a project skill, `.claude/skills/norwegian-real-estate-finder`, t
 
 Example prompt: "Find apartments in Saupstad, Trondheim under 4 million for a young family of 3."
 
+The finder's table includes `Renovation (est.)`, `Bid` and `Max bid` columns. These are rule-based from your budget (budget − fellesgjeld − omkostninger − renovation − 3% buffer), not sold-price data. At the end it can export the result as a PDF with listing photos or a private Artifact page. A second skill, `.claude/skills/norwegian-listing-details`, does a single-listing deep dive ("tell me more about #2", a finnkode or a FINN URL): fact sheet, red flags, questions for the megler and a bid block.
+
+After updating the parser, restart the MCP server (and start a new Claude Code session so new skills register); a stale server returns old fields such as a single image.
+
 ## Examples
 
 - "Search for 'skjorter' on FINN Torget"
