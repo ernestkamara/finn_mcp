@@ -100,6 +100,6 @@ export function decodeStreamRef(value, arr, depth = 0, seen = new Set()) {
 
 export function decodeLoaderData(html) {
   const arr = extractReactRouterStream(html);
-  if (!arr || arr[1] !== "loaderData") return null;
+  if (arr?.[1] !== "loaderData") return null;
   return decodeStreamRef(arr[2], arr);
 }
