@@ -38,12 +38,13 @@ The tool takes one `fuel` value, so run **one search per powertrain** and merge.
 ## 4. Verify, then rank
 
 1. **Post-filter** search rows: `fuel` equals the requested powertrain, `registration_class == "Personbil"` (drop vans/Varebil), price plausible.
-2. Fetch `get_finn_mobility_item` for about 15-20 candidates (cheapest by rough total cost, spread across powertrains). From the specs take **Pris eksl. omreg.** and **Omregistrering**, and re-check `Drivstoff`. Also read Modellår, Kilometerstand, Batterikapasitet, Rekkevidde (WLTP), Effekt, `Bilen står i`, 1. gang registrert, Eiere, EU-kontroll date, Salgsform.
-3. **Total cost** = price excl. omreg. + omregistrering + estimated delivery. Drop anything above the budget. If a detail page lacks the split, fall back to the listing price and say so.
+2. Fetch `get_finn_mobility_item` for about 15-20 candidates (cheapest by rough total cost, spread across powertrains). From the specs take **Pris ekskl. omreg.** and **Omregistrering** (the headline `price` already includes omregistrering, e.g. 26,942 = 25,000 + 1,942, so never add it twice), and re-check `Drivstoff`. Also read Modellår, Kilometerstand, Batterikapasitet, Rekkevidde (WLTP), Effekt, `Bilen står i`, 1. gang registrert, Eiere, EU-kontroll date, Salgsform.
+3. **Drop non-purchases**: keep only `Salgsform` = "Bruktbil til salgs" (or another outright-sale form). Drop `Leasing` and "Gjenværende kilometer i avtale"/"Antall terminer" listings; they show monthly or placeholder prices (observed: a 2026 Porsche Cayenne Turbo at 25,000 NOK that is a lease takeover). `price_from=20000` does not remove these.
+4. **Total cost** = price excl. omreg. + omregistrering + estimated delivery. Drop anything above the budget. If a detail page lacks the split, fall back to the listing price and say so.
 
 ## 5. Delivery model (assumption, not a quote)
 
-FINN has no delivery-cost data. Estimate by distance from the car's location (`Bilen står i` plus listing `location`) to the delivery city. Tiers for delivery to Trondheim:
+FINN has no delivery-cost data. Estimate by distance from the car's location (use the search row's `location` town; the detail `location` is null and `Bilen står i` is usually just "Norge") to the delivery city. Tiers for delivery to Trondheim:
 
 | Car located in | Estimate (NOK) |
 |---|---|
