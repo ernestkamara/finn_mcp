@@ -110,6 +110,8 @@ Example prompt: "Find apartments in Saupstad, Trondheim under 4 million for a yo
 
 The finder's table includes `Renovation (est.)`, `Bid` and `Max bid` columns. These are rule-based from your budget (budget − fellesgjeld − omkostninger − renovation − 3% buffer), not sold-price data. At the end it can export the result as a PDF with listing photos or a private Artifact page. A second skill, `.claude/skills/norwegian-listing-details`, does a single-listing deep dive ("tell me more about #2", a finnkode or a FINN URL): fact sheet, red flags, questions for the megler and a bid block.
 
+A third skill, `.claude/skills/norwegian-ev-finder`, turns "Top 10 EV cars under 90K sorted by total cost including delivery to Trondheim" into a ranked table. It covers EV, hybrid and plug-in hybrid (EV by default; ask for "hybrid", "plug-in hybrid" or "all electrified"). The NOK budget is a cap on total cost (price + omregistrering + estimated delivery). Delivery is a rule-based estimate by distance, not a quote. FINN's `fuel` filter only works with numeric codes (El `4`, Hybrid bensin `6`, Plug-in Bensin `1352`) and low search prices can be placeholders, so the skill verifies candidates via detail pages.
+
 After updating the parser, restart the MCP server (and start a new Claude Code session so new skills register); a stale server returns old fields such as a single image.
 
 ## Examples
