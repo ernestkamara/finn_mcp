@@ -92,6 +92,15 @@ describe("parseRealestateDetail", () => {
     assert.ok(detail.cadastre.some((line) => /^Gårdsnr: 224$/.test(line)));
   });
 
+  it("collects distinct listing gallery photos without brand assets", () => {
+    const { images } = parseRealestateDetail(detailHtml);
+    assert.ok(images.length > 5);
+    assert.ok(images.length <= 20);
+    assert.ok(images.every((u) => !/companyprofile|\/logo\//.test(u)));
+    const uuids = images.map((u) => u.match(/_([0-9a-f-]{36})\./)?.[1]);
+    assert.equal(new Set(uuids).size, images.length);
+  });
+
   it("detects sold listings on detail pages", () => {
     assert.equal(isSoldRealestateDetail(soldDetailHtml), true);
     const detail = parseRealestateDetail(soldDetailHtml);

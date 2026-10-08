@@ -169,6 +169,25 @@ export function parseRealestateLocationFilters(html, query) {
     .slice(0, 50);
 }
 
+const MAX_IMAGES = 20;
+
+/**
+ * Collect the listing's own photos (vertical-2 assets on the FINN image CDN),
+ * deduped by uuid and preferring the 1280w variant. Brand/logo assets are skipped.
+ */
+function collectListingImages(html) {
+  const re =
+    /images\.finncdn\.no\/dynamic\/(\d+w)\/(\d{4}\/\d+\/vertical-2\/[^"'?\s\\)]*?_([0-9a-f-]{36})\.(?:jpg|png))/gi;
+  const byUuid = new Map();
+  for (const m of html.matchAll(re)) {
+    const [, width, path, uuid] = m;
+    const prev = byUuid.get(uuid);
+    if (!prev) byUuid.set(uuid, { width, path });
+    else if (width === "1280w" && prev.width !== "1280w") prev.width = width;
+  }
+  return [...byUuid.values()].map(({ width, path }) => `https://images.finncdn.no/dynamic/${width}/${path}`);
+}
+
 export function parseRealestateDetail(html) {
   const $ = cheerio.load(html);
 
@@ -222,7 +241,7 @@ export function parseRealestateDetail(html) {
     if (text) keyInfo[label] = text;
   });
 
-  const images = [];
+  const images = collectListingImages(html);
   $('[data-testid="image-gallery"] img, [data-testid^="gallery-"] img').each((_, el) => {
     const src = $(el).attr("src") || $(el).attr("data-src");
     if (src && !images.includes(src)) images.push(src);
@@ -250,6 +269,6 @@ export function parseRealestateDetail(html) {
     facilities,
     cadastre,
     key_info: keyInfo,
-    images: images.slice(0, 12),
+    images: images.slice(0, MAX_IMAGES),
   };
 }
