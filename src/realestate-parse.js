@@ -172,29 +172,23 @@ export function parseRealestateLocationFilters(html, query) {
 export function parseRealestateDetail(html) {
   const $ = cheerio.load(html);
 
-  const title = $('[data-testid="object-title"]').text().trim() || $("h1").first().text().trim();
+  const title = $('[data-testid="object-title"] h1').first().text().trim() || $("h1").first().text().trim();
 
-  const address = $('[data-testid="object-address"]').text().trim() || null;
+  const address = $('[data-testid="object-address"]').first().text().trim() || null;
 
-  const price =
-    $('[data-testid="price"] .t2, [data-testid="price"]').first().text().trim() ||
-    $(".t2")
-      .filter((_, el) => /\d[\d\s]*kr/.test($(el).text()))
-      .first()
-      .text()
-      .trim() ||
-    null;
+  const price = $('[data-testid="pricing-incicative-price"] .font-bold').first().text().trim() || null;
 
-  const description =
-    $('[data-testid="description"] .whitespace-pre-wrap').text().trim() ||
-    $('[data-testid="description"]').text().trim() ||
-    null;
+  const pricingDetail = (testId) => $(`[data-testid="${testId}"] dd`).first().text().trim() || null;
+
+  const descriptionEl = $('[data-testid="about-property"] .description-area').first();
+  descriptionEl.find("br").replaceWith("\n");
+  const description = descriptionEl.text().trim() || null;
 
   const keyInfo = {};
   $('[data-testid^="info-"]').each((_, el) => {
     const testId = $(el).attr("data-testid") || "";
     const label = testId.replace(/^info-/, "").replace(/-/g, " ");
-    const text = $(el).text().trim().replace(/\s+/g, " ");
+    const text = ($(el).find("dd").first().text() || $(el).text()).trim().replace(/\s+/g, " ");
     if (text) keyInfo[label] = text;
   });
 
@@ -210,7 +204,10 @@ export function parseRealestateDetail(html) {
   return {
     status: sold ? "sold" : "for_sale",
     title: title || null,
-    price: price || null,
+    price,
+    total_price: pricingDetail("pricing-total-price"),
+    joint_debt: pricingDetail("pricing-joint-debt"),
+    shared_cost_monthly: pricingDetail("pricing-common-monthly-cost"),
     address,
     local_area: localArea,
     description,

@@ -69,6 +69,16 @@ describe("parseRealestateDetail", () => {
     assert.ok(Object.keys(detail.key_info).length > 0, "should have key info");
   });
 
+  it("extracts price, pricing breakdown and description", () => {
+    const detail = parseRealestateDetail(detailHtml);
+    assert.match(detail.price, /\d.*kr/);
+    assert.match(detail.total_price, /\d.*kr/);
+    assert.ok(detail.description && detail.description.length > 50, "should have description");
+    assert.ok(!/(.{10,})\1/.test(detail.address), "address should not be duplicated");
+    assert.ok(!detail.title.includes("Kart"), "title should only contain the heading");
+    assert.match(detail.key_info.bedrooms, /^\d+$/);
+  });
+
   it("detects sold listings on detail pages", () => {
     assert.equal(isSoldRealestateDetail(soldDetailHtml), true);
     const detail = parseRealestateDetail(soldDetailHtml);
