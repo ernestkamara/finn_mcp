@@ -102,6 +102,12 @@ Config file locations:
 - **Linux:** `~/.config/claude/claude_desktop_config.json`
 - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
+### Claude Code skill
+
+The repo ships a project skill, `.claude/skills/norwegian-real-estate-finder`, that turns one sentence into a ranked Top 5 buyer-advisor answer using the real estate tools. It resolves the location, compares andel units on total price (asking price + fellesgjeld + omkostninger), flags renovation risk and marks anything it cannot verify (e.g. tilstandsrapport/TG).
+
+Example prompt: "Find apartments in Saupstad, Trondheim under 4 million for a young family of 3."
+
 ## Examples
 
 - "Search for 'skjorter' on FINN Torget"
