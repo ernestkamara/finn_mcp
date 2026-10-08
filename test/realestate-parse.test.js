@@ -79,6 +79,19 @@ describe("parseRealestateDetail", () => {
     assert.match(detail.key_info.bedrooms, /^\d+$/);
   });
 
+  it("extracts energy label, costs, preemption, facilities and cadastre", () => {
+    const detail = parseRealestateDetail(detailHtml);
+    assert.equal(detail.energy_label, "D");
+    assert.match(detail.registration_charge, /1\s090/);
+    assert.match(detail.sales_costs, /Omkostninger: kr 1\s090/);
+    assert.ok(detail.sales_costs.includes("\n"), "should preserve line breaks");
+    assert.match(detail.common_cost_info, /Totale felleskostnader/);
+    assert.match(detail.preemption, /ikke med forkjøpsrett/);
+    assert.ok(detail.viewings.length > 0 && /28\. juni/.test(detail.viewings[0]));
+    assert.ok(detail.facilities.includes("Heis"));
+    assert.ok(detail.cadastre.some((line) => /^Gårdsnr: 224$/.test(line)));
+  });
+
   it("detects sold listings on detail pages", () => {
     assert.equal(isSoldRealestateDetail(soldDetailHtml), true);
     const detail = parseRealestateDetail(soldDetailHtml);

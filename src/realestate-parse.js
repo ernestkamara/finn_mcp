@@ -180,9 +180,39 @@ export function parseRealestateDetail(html) {
 
   const pricingDetail = (testId) => $(`[data-testid="${testId}"] dd`).first().text().trim() || null;
 
-  const descriptionEl = $('[data-testid="about-property"] .description-area').first();
-  descriptionEl.find("br").replaceWith("\n");
-  const description = descriptionEl.text().trim() || null;
+  const blockText = (selector) => {
+    const el = $(selector).first();
+    el.find("br").replaceWith("\n");
+    return (
+      el
+        .text()
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim() || null
+    );
+  };
+
+  const description = blockText('[data-testid="about-property"] .description-area');
+
+  const energyLabelRaw = $('[data-testid="energy-label"] [aria-label^="Energimerke"]').first().attr("aria-label");
+  const energyLabel = energyLabelRaw?.replace(/^Energimerke\s*/, "").trim() || null;
+
+  const viewings = [];
+  $('[data-testid^="viewings-"]').each((_, el) => {
+    const text = $(el).find("div").first().text().trim();
+    const time = $(el).find(".font-bold").first().text().replace(/\s+/g, " ").trim();
+    if (text && !viewings.includes(`${text} ${time}`.trim())) viewings.push(time ? `${text} ${time}` : text);
+  });
+
+  const facilities = $('[data-testid="object-facilities"] .break-words')
+    .map((_, el) => $(el).text().trim())
+    .get()
+    .filter(Boolean);
+
+  const cadastre = $('[data-testid="cadastre-info"] > div > div')
+    .map((_, el) => $(el).text().replace(/\s+/g, " ").trim())
+    .get()
+    .filter(Boolean);
 
   const keyInfo = {};
   $('[data-testid^="info-"]').each((_, el) => {
@@ -211,6 +241,14 @@ export function parseRealestateDetail(html) {
     address,
     local_area: localArea,
     description,
+    energy_label: energyLabel,
+    registration_charge: pricingDetail("pricing-registration-charge"),
+    sales_costs: blockText('[data-testid="sales-costs"]'),
+    common_cost_info: blockText('[data-testid="common-cost"]'),
+    preemption: blockText('[data-testid="preemption"]'),
+    viewings,
+    facilities,
+    cadastre,
     key_info: keyInfo,
     images: images.slice(0, 12),
   };

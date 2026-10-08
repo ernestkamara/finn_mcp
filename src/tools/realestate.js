@@ -182,7 +182,7 @@ export function registerRealestateTools(server) {
     "get_finn_realestate_home",
     {
       description:
-        "Get details of a home/apartment listing on FINN.no Eiendom by its FINN-kode. Returns price, address, size, bedrooms, description, and images. Returns an error if the listing is sold.",
+        "Get details of a home/apartment listing on FINN.no Eiendom by its FINN-kode. Returns price, total price, joint debt (fellesgjeld), monthly shared cost, registration charge, sales costs, common-cost breakdown, preemption (forkjøpsrett), energy label, viewings, facilities, cadastre info, address, size, bedrooms, description, and images. Does not include the condition report (tilstandsrapport/TG). Returns an error if the listing is sold.",
       inputSchema: {
         finn_code: z.string().describe("The FINN-kode (numeric item ID) of the property"),
       },
